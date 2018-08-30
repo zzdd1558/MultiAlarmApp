@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">AlarmApp</string>
     <string name="action_settings">Settings</string>
-    <string name="reqeust_code" >REQUEST_CODE</string>
+    <string name="reqeust_code">REQUEST_CODE</string>
 </resources>
