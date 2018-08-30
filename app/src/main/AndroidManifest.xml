@@ -20,28 +20,33 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:launchMode="singleInstance"
             android:screenOrientation="portrait"
-            android:launchMode="singleInstance">
-
-        </activity>
-        <activity android:name=".SetAlarm"
-            android:screenOrientation="portrait"/>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".SetAlarm"
+            android:screenOrientation="portrait" />
 
         <receiver
             android:name=".receiver.AlarmReceiver"
             android:enabled="true" />
 
-        <activity android:name=".LoadingSplash"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+        <activity
+            android:name=".LoadingSplash"
             android:screenOrientation="portrait"
-            >
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="@string/kakao_app_key" />
+
+        <activity android:name=".Alarm_Start_Activity"></activity>
     </application>
 
 </manifest>
