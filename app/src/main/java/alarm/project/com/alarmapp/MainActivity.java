@@ -128,10 +128,7 @@ public class MainActivity extends AppCompatActivity {
         //db helper
         db = new DatabaseHelper(mCtx);
 
-        // BroadCast PendingIntent시 화면을 켜주기 위한 설정. 및 잠금화면 위에서 Activity 실행.
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+
     }
 
     public static String getKeyHash(final Context context) {

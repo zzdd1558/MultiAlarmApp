@@ -1,9 +1,11 @@
 package alarm.project.com.alarmapp;
 
 import android.content.Context;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.WindowManager;
 
 import com.kakao.sdk.newtoneapi.SpeechRecognizeListener;
 import com.kakao.sdk.newtoneapi.SpeechRecognizerClient;
@@ -24,12 +26,26 @@ public class Alarm_Start_Activity extends AppCompatActivity {
         setContentView(R.layout.activity_alarm__start_);
 
         initComponents();
+        // BroadCast PendingIntent시 화면을 켜주기 위한 설정. 및 잠금화면 위에서 Activity 실행.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 
         startUsingSpeechSDK();
+        startVibrator();
     }
+
+
 
     private void initComponents() {
         mCtx = this;
+    }
+
+    public void startVibrator(){
+        Vibrator vibe = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+
+        long[] vibrate_pattern = {100, 300, 100, 700,100, 300, 100, 700};
+        vibe.vibrate(vibrate_pattern , 0);
     }
 
     public void startUsingSpeechSDK(){
