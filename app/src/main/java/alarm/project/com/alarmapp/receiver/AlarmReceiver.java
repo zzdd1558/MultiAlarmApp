@@ -10,6 +10,7 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import alarm.project.com.alarmapp.Alarm_Start_Activity;
 import alarm.project.com.alarmapp.MainActivity;
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -35,7 +36,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             wakeLock = null;
         }
 
-        Intent it = new Intent(context , MainActivity.class);
+        Intent it = new Intent(context , Alarm_Start_Activity.class);
         PendingIntent pi = PendingIntent.getActivity(context , 1001 , it , PendingIntent.FLAG_ONE_SHOT);
         try{
             pi.send();

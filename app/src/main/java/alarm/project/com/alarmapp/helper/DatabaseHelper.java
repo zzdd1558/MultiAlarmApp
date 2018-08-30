@@ -116,7 +116,13 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public void soundCheck (String flag , int reqeustCode){
+    public void soundCheck (String flag , int requestCode){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(columnYN , flag);
+
+        db.update(TABLE_NAME , values , columnCode + " = ? " , new String[]{String.valueOf(requestCode)});
 
     }
 
@@ -130,6 +136,11 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         values.put(columnYN , data.getAlarmFlag());
 
         db.update(TABLE_NAME , values , columnCode + " = ?" , new String[]{String.valueOf(data.getRequestCode())});
+    }
+
+    public void onDeleteOne(int requestCode){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_NAME , columnCode + " = ?" , new String[]{String.valueOf(requestCode)});
 
     }
 
