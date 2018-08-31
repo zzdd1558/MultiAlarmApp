@@ -122,7 +122,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
                 record.setAlarmSound(progress);
             }
         });
@@ -154,7 +154,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
                 hour.setValue(mHour);
                 minute.setValue(mMinute);
 
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC , data.getAlarmSound() , 0);
+                //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC , data.getAlarmSound() , 0);
                 soundController.setProgress(data.getAlarmSound());
 
                 ((TextView) findViewById(R.id.today)).setText(mYear + "년 " + timeSplit[2]);
@@ -180,6 +180,8 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
             requestCode++;
             SharedPrefsUtils.setIntegerPreference(mCtx , getString(R.string.reqeust_code) , requestCode);
         }
+
+        intent.putExtra("requestCode" , requestCode);
 
 
         PendingIntent operation = PendingIntent.getBroadcast(SetAlarm.this , requestCode , intent , PendingIntent.FLAG_UPDATE_CURRENT);

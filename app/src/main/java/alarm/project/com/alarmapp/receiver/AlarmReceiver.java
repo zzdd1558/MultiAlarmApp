@@ -21,6 +21,9 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         Toast.makeText(context, "Alarm Received!", Toast.LENGTH_LONG).show();
         Log.i("TAGG RECEIVER" , "HELLO RECEIVER");
+        Log.i("TAGG RECEIVER" , intent.getIntExtra("requestCode" , -1) + "");
+
+
 
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(
@@ -37,7 +40,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         Intent it = new Intent(context , Alarm_Start_Activity.class);
-        PendingIntent pi = PendingIntent.getActivity(context , 1001 , it , PendingIntent.FLAG_ONE_SHOT);
+        it.putExtra("requestCode" , intent.getIntExtra("requestCode" , -1));
+        PendingIntent pi = PendingIntent.getActivity(context , -1 , it , PendingIntent.FLAG_ONE_SHOT);
         try{
             pi.send();
         }catch (PendingIntent.CanceledException e ) {
