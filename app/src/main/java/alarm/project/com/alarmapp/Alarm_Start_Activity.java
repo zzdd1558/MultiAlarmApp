@@ -1,8 +1,16 @@
 package alarm.project.com.alarmapp;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
@@ -10,6 +18,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,21 +27,33 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.kakao.sdk.newtoneapi.SpeechRecognizeListener;
 import com.kakao.sdk.newtoneapi.SpeechRecognizerClient;
 import com.kakao.sdk.newtoneapi.SpeechRecognizerManager;
+import com.kakao.sdk.newtoneapi.TextToSpeechClient;
+import com.kakao.sdk.newtoneapi.TextToSpeechListener;
+import com.kakao.sdk.newtoneapi.TextToSpeechManager;
 
 import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import alarm.project.com.alarmapp.helper.DatabaseHelper;
 import alarm.project.com.alarmapp.models.AlarmRecordDTO;
+import alarm.project.com.alarmapp.network.RetroClient;
 import alarm.project.com.alarmapp.utils.TimeSplitUtils;
+import alarm.project.com.alarmapp.weatherAPI.ApiService;
+import alarm.project.com.alarmapp.weatherAPI.WeatherInfo;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class Alarm_Start_Activity extends Activity implements View.OnClickListener {
+public class Alarm_Start_Activity extends Activity implements View.OnClickListener , LocationListener , TextToSpeechListener{
 
     private final String TAG = "Alarm_Start";
 
@@ -53,7 +75,17 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
     private Button mNewton = null;
     private Button mWeather = null;
 
-    private Handler uiHandler = new Handler()
+    private double dLat = 0.0;
+    private double dLon = 0.0;
+
+    private LocationManager locationManager = null;
+
+    private String API_KEY = null;
+
+    // 음성 합성
+    private TextToSpeechClient ttsClient;
+
+    private Handler falseUIHandler = new Handler()
     {
         @Override
         public void handleMessage(Message msg) {
@@ -62,6 +94,18 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             mWeather.setEnabled(false);
         }
     };
+
+    private Handler trueUIHandler = new Handler()
+    {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            mNewton.setEnabled(true);
+            mWeather.setEnabled(true);
+        }
+    };
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,13 +137,148 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 client.startRecording(true);
                 break;
             case R.id.weather:
+                startWeather();
                 break;
 
         }
     }
 
+    private void requestLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            Toast.makeText(mCtx, "권한체크 필요 !!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        {
+            Toast.makeText(mCtx, "GPS활성화 필요 !!", Toast.LENGTH_SHORT).show();
+            checkGPS();
+            return;
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+    }
+
+    private void doGeoCoding(double lat, double lon)
+    {
+        Geocoder geocoder = new Geocoder(this);
+
+        try {
+            List<Address> results = geocoder.getFromLocation(lat, lon, 1);
+            Log.d("TAG", results.get(0).getAddressLine(0));
+
+        } catch (Exception e) {
+            e.toString();
+        }
+    }
+
+
+    private void makeWeatherMent(WeatherInfo weatherInfo)
+    {
+        String weatherMent="";
+        weatherMent = String.format(
+                getString(R.string.weather_ment_1)
+                , weatherInfo.getWeather().getHourly().get(0).getGrid().getCity()
+                , weatherInfo.getWeather().getHourly().get(0).getGrid().getCounty()
+                , weatherInfo.getWeather().getHourly().get(0).getGrid().getVillage()
+                , weatherInfo.getWeather().getHourly().get(0).getSky().getName()
+                , Math.round(Float.parseFloat(weatherInfo.getWeather().getHourly().get(0).getTemperature().getTc()))+ ""
+                , Math.round(Float.parseFloat(weatherInfo.getWeather().getHourly().get(0).getTemperature().getTmax()))+ ""
+                , Math.round(Float.parseFloat(weatherInfo.getWeather().getHourly().get(0).getTemperature().getTmin()))+ ""
+                , Math.round(Float.parseFloat(weatherInfo.getWeather().getHourly().get(0).getHumidity()))+ ""
+                , weatherInfo.getWeather().getHourly().get(0).getWind().getWspd());
+
+
+        Handler(falseUIHandler);
+
+        if(player.isPlaying()){
+            player.stop();
+        }
+
+        ttsClient.setSpeechText(weatherMent);
+        ttsClient.play();
+
+        Log.d(TAG, "tv_weatherMent : " + weatherMent);
+    }
+
+    private void getWeatherInfo(double lat, double lon)
+    {
+        ApiService service = RetroClient.getApiService();
+        Call<WeatherInfo> resultCall = service.getCurrentWeather(API_KEY, 2, lat, lon);
+
+        resultCall.enqueue(new Callback<WeatherInfo>() {
+            @Override
+            public void onResponse(Call<WeatherInfo> call, Response<WeatherInfo> response) {
+
+                if(response.isSuccessful())
+                {
+                    Log.d("TAG", "response.body() : " + new Gson().toJson(response.body()));
+                    //tv_weatherStatus.setText(new Gson().toJson(response.body()));
+                    makeWeatherMent(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WeatherInfo> call, Throwable t) {
+                Toast.makeText(mCtx, "실패", Toast.LENGTH_SHORT).show();
+                Log.d("TAG", "retrofit2 error : " + t.getMessage());
+            }
+        });
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d("TAG", "onLocationChanged()");
+        dLat = location.getLatitude();
+        dLon = location.getLongitude();
+
+        locationManager.removeUpdates(this);
+        doGeoCoding(dLat, dLon);
+        getWeatherInfo(dLat, dLon);
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    private void checkGPS()
+    {
+        //GPS가 켜져있는지 체크
+        if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            Toast.makeText(mCtx, "GPS활성화 필요 !!", Toast.LENGTH_SHORT).show();
+            //GPS 설정화면으로 이동
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            startActivity(intent);
+        }
+    }
+
+
+
     private void initComponents() {
 
+        // Context
         mCtx = this;
 
         //db helper
@@ -107,15 +286,37 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         mYearMonthDay = (TextView) findViewById(R.id.show_day);
         mHourMinute = (TextView) findViewById(R.id.show_time);
-        ;
+
+        // 음성 및 날씨 정보 얻는 버튼
         mNewton = (Button) findViewById(R.id.newtone);
         mWeather = (Button) findViewById(R.id.weather);
-
         mNewton.setOnClickListener(this);
         mWeather.setOnClickListener(this);
 
+        // Weather사용 관련 GPS정보 얻기 위한 Manager
+        locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+
         alarmRequestCode = getIntent().getIntExtra("requestCode", -1);
 
+        API_KEY = getString(R.string.weather_key);
+
+        TextToSpeechManager.getInstance().initializeLibrary(getApplicationContext());
+
+
+    }
+
+    public void startWeather () {
+
+        Handler(falseUIHandler);
+
+        ttsClient = new TextToSpeechClient.Builder()
+                .setSpeechMode(TextToSpeechClient.NEWTONE_TALK_1)     // 음성합성방식
+                .setSpeechSpeed(1.0)            // 발음 속도(0.5~4.0)
+                .setSpeechVoice(TextToSpeechClient.VOICE_WOMAN_DIALOG_BRIGHT)  //TTS 음색 모드 설정(여성 차분한 낭독체)
+                .setListener(this)
+                .build();
+
+        requestLocation();
     }
 
     public void startRington() {
@@ -160,6 +361,19 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         vibe.vibrate(vibrate_pattern, 0);
     }
 
+    public void Handler (final Handler kindOfHandler) {
+        new Thread()
+        {
+            @Override
+            public void run() {
+
+                Message msg = kindOfHandler.obtainMessage();
+                kindOfHandler.sendMessage(msg);
+            }
+        }.start();
+
+    }
+
     public void startUsingSpeechSDK() {
         // SDK 초기화 부분.
         SpeechRecognizerManager.getInstance().initializeLibrary(mCtx);
@@ -176,16 +390,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             public void onReady() {
 
                 Log.i(TAG + " onReady", "onReady");
-                new Thread()
-                {
-                    @Override
-                    public void run() {
-
-                        Message msg = uiHandler.obtainMessage();
-                        uiHandler.sendMessage(msg);
-                    }
-                }.start();
-
+                Handler(falseUIHandler);
             }
 
             @Override
@@ -200,6 +405,10 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             @Override
             public void onError(int errorCode, String errorMsg) {
 
+                if(errorCode == 4){
+                    Handler(trueUIHandler);
+                }
+                Log.i(TAG + " onError", errorCode + "");
                 Log.i(TAG + " onError", errorMsg);
             }
 
@@ -267,6 +476,23 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         client.startRecording(true);
     }
 
+    @Override
+    public void onFinished() {
+        int intSentSize = ttsClient.getSentDataSize();      //세션 중에 전송한 데이터 사이즈
+        int intRecvSize = ttsClient.getReceivedDataSize();  //세션 중에 전송받은 데이터 사이즈
+
+        final String strInacctiveText = "handleFinished() SentSize : " + intSentSize + "  RecvSize : " + intRecvSize;
+
+        Log.i(TAG, strInacctiveText);
+
+
+        finish();
+    }
+
+    @Override
+    public void onError(int code, String message) {
+
+    }
 
     @Override
     protected void onDestroy() {
@@ -275,6 +501,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         // 종료시점
         // API를 더이상 사용하지 않을 때 finalizeLibrary() 호출.
         SpeechRecognizerManager.getInstance().finalizeLibrary();
+
+        //음성 합성 종료
+        TextToSpeechManager.getInstance().finalizeLibrary();
     }
 
 
