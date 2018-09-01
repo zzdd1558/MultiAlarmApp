@@ -14,15 +14,15 @@ import alarm.project.com.alarmapp.models.AlarmRecordDTO;
 
 public class DatabaseHelper extends SQLiteOpenHelper{
 
-    // TAG Label
+    // TAG 라벨.
     private static String TAG = "DatabaseHelper";
 
-    // Options
+    // DB 옵션 및 테이블 이름 .
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "Alarm";
     private static final String TABLE_NAME = "Alarm_DB";
 
-    // Columns
+    // DB 컬럼
     private static final String columnCode = "request_code";
     private static final String columnTime = "regist_time";
     private static final String columnSound = "alarm_sound";
@@ -77,6 +77,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     }
 
     // DB 데이터 Select
+    // return All 데이터
     public List<AlarmRecordDTO> selectAll(){
 
         List<AlarmRecordDTO> alarmList = new ArrayList<AlarmRecordDTO>();
@@ -87,8 +88,6 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(select_query.toString() , null);
-
-
 
         if (cursor.moveToFirst()) {
             do{
@@ -104,6 +103,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         return alarmList;
     }
 
+    // 테이블 삭제 .
     public  void onDelete(){
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -116,6 +116,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
+
+    // 알람 실행시킬지 말지에 대한  Y/N 쿼리 메소드
     public void soundCheck (String flag , int requestCode){
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -126,9 +128,9 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
     }
 
+    // 데이터 업데이트 메소드 .
     public void onUpdate(AlarmRecordDTO data){
         SQLiteDatabase db = this.getWritableDatabase();
-
 
         ContentValues values = new ContentValues();
         values.put(columnTime , data.getRegistTime());
@@ -138,12 +140,19 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         db.update(TABLE_NAME , values , columnCode + " = ?" , new String[]{String.valueOf(data.getRequestCode())});
     }
 
+
+    // 하나의 알람을 지우는데 사용하는 메소드
+    // @parameter : requestCode ( 알람 설정시 등록한 request code )
     public void onDeleteOne(int requestCode){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_NAME , columnCode + " = ?" , new String[]{String.valueOf(requestCode)});
 
     }
 
+    /*
+    *
+    * @return : 단일 record
+    * */
     public AlarmRecordDTO onSelectOne(int requestCode){
         SQLiteDatabase db = this.getWritableDatabase();
 

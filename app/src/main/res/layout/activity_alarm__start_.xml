@@ -21,6 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="2018년 08월 29일"
+            android:textColor="#ffffff"
             android:textSize="24dp" />
 
         <TextView
@@ -30,6 +31,7 @@
             android:layout_below="@id/show_day"
             android:layout_centerInParent="true"
             android:text="01시 03분"
+            android:textColor="#ffffff"
             android:textSize="24dp" />
 
     </RelativeLayout>

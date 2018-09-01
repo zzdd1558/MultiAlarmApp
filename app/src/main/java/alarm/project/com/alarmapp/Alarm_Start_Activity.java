@@ -62,29 +62,40 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
     private Vibrator vibe = null;
 
+
     private AudioManager audioManager = null;
 
+    // Rintone 관련 media 재생 관련 변수
     private Uri alert = null;
     private MediaPlayer player = null;
     private int alarmRequestCode;
 
+
+    // DB Helpler
     private DatabaseHelper db = null;
 
+    // TextView,  Button Component
     private TextView mYearMonthDay = null;
     private TextView mHourMinute = null;
     private Button mNewton = null;
     private Button mWeather = null;
 
+
+    // 위도 경도 값
     private double dLat = 0.0;
     private double dLon = 0.0;
 
+    // GPS사용을 위한 LocationManager.
     private LocationManager locationManager = null;
 
+    // SK Weather API _ KEY
     private String API_KEY = null;
 
     // 음성 합성
     private TextToSpeechClient ttsClient;
 
+    // Kakao 음성 API가 onResult를 빼곤 비동기로 움직이기때문에
+    // UIHandler를 사용 하여 UI 변경.
     private Handler falseUIHandler = new Handler()
     {
         @Override
@@ -95,6 +106,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         }
     };
 
+    // 버튼 활성화.
     private Handler trueUIHandler = new Handler()
     {
         @Override
@@ -105,28 +117,49 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         }
     };
 
-
+    // db로부터 사용할 record
+    private AlarmRecordDTO record = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alarm__start_);
 
-
-        initComponents();
-
-        AlarmRecordDTO record = db.onSelectOne(alarmRequestCode);
-
-        // 년 월 일 시 분
-        int[] currentAlarm = TimeSplitUtils.calTimeSplit(record.getRegistTime());
-
         // BroadCast PendingIntent시 화면을 켜주기 위한 설정. 및 잠금화면 위에서 Activity 실행.
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 
+        // Components 초기화.
+        initComponents();
+
+        //requestCode를 통해 해당 되는 record값 얻기.
+        record = db.onSelectOne(alarmRequestCode);
+
+
+        // 년 월 일 시 분 순으로 저장.
+        int[] currentAlarm = TimeSplitUtils.calTimeSplit(record.getRegistTime());
+
+
+        int mYear = currentAlarm[0];
+        int mMonth = currentAlarm[1];
+        int mDayOfMonth = currentAlarm[2];
+        int mHour = currentAlarm[3];
+        int mMinute = currentAlarm[4];
+
+
+        mYearMonthDay.setText(mYear + "년 " + mMonth + "월 " + mDayOfMonth + "일 ");
+        mHourMinute.setText(mHour + "시 " + mMinute + "분 ");
+
+
+        // 알람 bell play
         startRington();
+
+        // 카카오 음성 인식 API 호출.
+        // 알람 시작과 동시에 명령 가능.
         startUsingSpeechSDK();
+
+        // 진동 시작.
         startVibrator();
     }
 
@@ -144,15 +177,8 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
     }
 
     private void requestLocation() {
+        Log.i(TAG , "requestLocation");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
             Toast.makeText(mCtx, "권한체크 필요 !!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -238,7 +264,8 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d("TAG", "onLocationChanged()");
+        Log.d(TAG, "onLocationChanged()");
+        Handler(falseUIHandler);
         dLat = location.getLatitude();
         dLon = location.getLongitude();
 
@@ -307,7 +334,10 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
     public void startWeather () {
 
-        Handler(falseUIHandler);
+
+        Log.i(TAG , "startWeather");
+
+
 
         ttsClient = new TextToSpeechClient.Builder()
                 .setSpeechMode(TextToSpeechClient.NEWTONE_TALK_1)     // 음성합성방식
@@ -333,6 +363,8 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
 
+            audioManager.setStreamVolume(AudioManager.STREAM_ALARM , record.getAlarmSound() , 0);
+
             player.setAudioStreamType(AudioManager.STREAM_ALARM);
 
             player.setLooping(true);
@@ -354,13 +386,17 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         }
     }
 
+
+    // 진동 시작
     public void startVibrator() {
         vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+        // 진동 패턴
         long[] vibrate_pattern = {100, 300, 100, 700, 100, 300, 100, 700};
         vibe.vibrate(vibrate_pattern, 0);
     }
 
+    // UIHandler관련 부분,.
     public void Handler (final Handler kindOfHandler) {
         new Thread()
         {
@@ -374,6 +410,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
     }
 
+    //  Kakao 음성 인식 시장.
     public void startUsingSpeechSDK() {
         // SDK 초기화 부분.
         SpeechRecognizerManager.getInstance().initializeLibrary(mCtx);
@@ -469,7 +506,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
             @Override
             public void onFinished() {
+
                 Log.i(TAG + " onFinished", "onFinished");
+                Handler(trueUIHandler);
             }
         });
 
@@ -504,7 +543,16 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         //음성 합성 종료
         TextToSpeechManager.getInstance().finalizeLibrary();
+
+        if (vibe != null) {
+            vibe.cancel();
+            vibe = null;
+        }
+
+        if (player != null) {
+            player.stop();
+            player.release();
+            player = null;
+        }
     }
-
-
 }

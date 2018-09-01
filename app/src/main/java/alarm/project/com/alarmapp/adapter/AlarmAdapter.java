@@ -70,16 +70,20 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         public AlarmViewHolder(View itemView) {
             super(itemView);
 
+            // itemView로 부터 Context를 받아 사용 가능.
             context = itemView.getContext();
 
+            // DB 사용을 위한 초기화
             db = new DatabaseHelper(context);
 
+            // init Component
             alarmLayout = itemView.findViewById(R.id.alarm_layout);
             alarmAmPm = itemView.findViewById(R.id.alarm_am_pm);
             alarmTime = itemView.findViewById(R.id.alarm_time);
             alarmDay = itemView.findViewById(R.id.alarm_day);
             alarmYN = itemView.findViewById(R.id.alarm_yn);
 
+            // Event 등록
             alarmLayout.setOnClickListener(this);
             alarmLayout.setOnLongClickListener(this);
             alarmYN.setOnClickListener(this);
@@ -89,6 +93,8 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
+
+                /* 알람 Layout을 클릭하열을 경우 . Animation을 활용하면서 수정 하는 Activity로 이동.*/
                 case R.id.alarm_layout :
                     Log.i(TAG, "Hello :: " + alarmRequestCode);
                     Intent it = new Intent( context, SetAlarm.class);
@@ -98,6 +104,8 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                     ((AppCompatActivity)context).overridePendingTransition(R.anim.slide_up, R.anim.stay);
 
                     break;
+
+                /*  알람을 울릴지 말지 에 대한 Y/N 체크 버튼  */
                 case R.id.alarm_yn :
                     Log.i(TAG , alarmYN.isChecked() + "" + alarmRequestCode);
 
@@ -115,13 +123,10 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                     calendar.set(setCalTime[0] , setCalTime[1] - 1 , setCalTime[2] , setCalTime[3] , setCalTime[4]);
                     calendar.set(Calendar.SECOND , 0);
 
-                    Log.i(TAG , calendar.getTimeInMillis() + "");
-                    Log.i(TAG , Calendar.getInstance().getTimeInMillis() + "");
-
-
                     Intent intent = new Intent(context , AlarmReceiver.class);
                     PendingIntent operation = PendingIntent.getBroadcast(context , alarmRequestCode , intent , PendingIntent.FLAG_UPDATE_CURRENT);
 
+                    // flag 가 Y일 경우 알람을 울린다. N 일경우는 알람등록을 하지 않고 해당 알람을 취소한다.
                     if ("Y".equals(flag)){
                         if (calendar.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()){
                             if (Build.VERSION.SDK_INT >= 23){
@@ -134,22 +139,20 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                 }
                             }
                         }
-
                     }else{
                         if ( operation != null ){
                             alarmManager.cancel(operation);
                             operation.cancel();
                         }
                     }
-
-
                     break;
             }
         }
 
+
+        // Long클릭할 경우 알람 삭제.
         @Override
         public boolean onLongClick(View v) {
-
             switch (v.getId()){
                 case R.id.alarm_layout :
 
@@ -214,14 +217,18 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
 
 
+    // Recycler ViewHolder 생성 부분.
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recylcer_view_row, parent, false);
-
         return new AlarmViewHolder(v);
     }
 
+
+    /**
+     *  처음 RecyclerView에 그려질때 설정되는 텍스트 및 체크
+     * */
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         AlarmViewHolder alarmViewHolder = (AlarmViewHolder) holder;
@@ -239,10 +246,9 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         alarmViewHolder.alarmTime.setText(showTime + "분");
         alarmViewHolder.alarmDay.setText(showDate);
         alarmViewHolder.alarmYN.setChecked("Y".equals(recordList.get(position).getAlarmFlag()) ? true : false);
-
-
     }
 
+    // RecyclerView에 뿌려지는 Item의 갯수.
     @Override
     public int getItemCount() {
         Log.i(TAG, recordList.size() + "");

@@ -36,35 +36,44 @@ import alarm.project.com.alarmapp.utils.TimeSplitUtils;
 
 public class SetAlarm extends AppCompatActivity implements View.OnClickListener {
 
-
+    // Context
     private Context                 mCtx = null;
 
+    // 시간 설정 관련 변수
     private NumberPicker            am_pm = null;
     private NumberPicker            hour = null;
     private NumberPicker            minute = null;
 
+    // Calendar 및 Date 관련 변수.
     private Calendar                calendar = null;
     private Date                    date = null;
 
+    // Sound 설정 관련 SeekBar 변수.
     private SeekBar                 soundController = null;
 
+    // 날짜 선택 관련 버튼
     private Button                  selectDate = null;
 
+    // 알람 저장 or 취소 관련 버튼
     private Button                  cancelBtn = null;
     private Button                  registBtn = null;
 
+    // 알람 시간 관련 VO
     private AlarmVO                 alarmVO = null;
 
+    // SimpleDateFormat Pattern
     private String                  setPattern = "yyyy년 M월 dd일 (E)";
 
+    // Log Label
     private static final String     TAG = "SetAlarm";
 
+    // DB Helper
     private DatabaseHelper          db = null;
 
-    private int                     alarmRequestCode = 0;
-
+    // AudioManager
     private AudioManager            audioManager = null;
 
+    // Alarm데이터 사용 관련 VO
     private AlarmRecordDTO          record = null ;
 
     @Override
@@ -72,45 +81,66 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_alarm);
 
+        // Component 초기화.
         initComponents();
 
+        // method가 insert or update 값에 따라 추가 or 수정을 구분 하기 위한 intent 값.
         String method = getIntent().getStringExtra("method").toString();
 
+        //event 등록.
         selectDate.setOnClickListener(this);
         cancelBtn.setOnClickListener(this);
         registBtn.setOnClickListener(this);
 
+        // SimpleDateFormat 설정 .
         String dateString = String2NumberDate(setPattern);
 
+        // 오늘 날짜로 TextView 변경.
         ((TextView) findViewById(R.id.today)).setText(dateString);
 
+
+        // am_pm 관련 Number Picker 세팅.
+        // 오전 : 0  , 오후 : 1
         am_pm.setMinValue(0);
         am_pm.setMaxValue(1);
         am_pm.setValue(String2NumberDate("a").equals("오전") ? 0 : 1);
         am_pm.setDisplayedValues(new String[]{
                 "오전", "오후"
         });
+
+        // NumberPicker에 focus disabled
         am_pm.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
 
+        // hour 관련 Number Picker 세팅.
         hour.setMinValue(0);
         hour.setMaxValue(23);
+
+        // 한바퀴 다돌면 처음으로 .
         hour.setWrapSelectorWheel(true);
         hour.setValue(alarmVO.getHour());
+
+        // NumberPicker에 focus disabled
         hour.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
 
+        // minute 관련 Number Picker 세팅.
         minute.setMinValue(0);
         minute.setMaxValue(59);
+
+        // 한바퀴 다돌면 처음으로 .
         minute.setWrapSelectorWheel(true);
         minute.setValue(alarmVO.getMinute());
+
+        // NumberPicker에 focus disabled
         minute.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
 
         // Audio Manager 사운드 컨트롤
-
+        // audioManager의 max값으 가져옴.
         int nMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+        // 현재 기기의 볼륨을 가져옴.
         int nCurrentVolumn = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         soundController.setMax(nMax);
         soundController.setProgress(nCurrentVolumn);
-
         soundController.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -127,6 +157,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
             }
         });
 
+        // 수정할경우.
         if ("update".equals(method)){
             int requestCode = getIntent().getIntExtra("requestCode" , -1);
             if(requestCode == -1){
@@ -158,14 +189,11 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
                 soundController.setProgress(data.getAlarmSound());
 
                 ((TextView) findViewById(R.id.today)).setText(mYear + "년 " + timeSplit[2]);
-
-                Log.i(TAG , data.toString());
-
-
             }
         }
     }
 
+    // 알람 등록부분.
     public void registAlarm(Context context, AlarmVO alarm , String method) {
 
         int requestCode = 0;
@@ -183,9 +211,9 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
 
         intent.putExtra("requestCode" , requestCode);
 
-
         PendingIntent operation = PendingIntent.getBroadcast(SetAlarm.this , requestCode , intent , PendingIntent.FLAG_UPDATE_CURRENT);
 
+        // 이미 등록되어있는 Alarm일 경우 취소후 다시 등록.
         if ( operation != null ){
             alarmManager.cancel(operation);
             operation.cancel();
@@ -211,12 +239,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
         record.setRegistTime(builder.toString());
         record.setAlarmFlag("Y");
 
-        Log.i(TAG , builder.toString());
-        Log.i(TAG , calendar.getTime().toString());
-        Log.i(TAG , record.toString());
-
-
-
+        // update or insert
         if("update".equals(method)){
             db.onUpdate(record);
         }else{
@@ -224,6 +247,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
         }
 
 
+        // 버전별 알람 등록이 다르기 때문에 분기처리.
         if( "Y".equals(record.getAlarmFlag())){
             if (Build.VERSION.SDK_INT >= 23){
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP , calendar.getTimeInMillis() , operation);
@@ -277,17 +301,20 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
         return "";
     }
 
+    // 취소 버튼 override 재설정.
     @Override
     public void onBackPressed() {
         showDialog("알람 설정", "알람 설정을 취소하고 뒤로가시겠습니까?");
     }
 
+    // 취소할 경우 finish() 후 Animation 추가.
     public void cancelFunc() {
         finish();
         overridePendingTransition(R.anim.stay, R.anim.slide_down);
 
     }
 
+    // Component 초기화.
     public void initComponents() {
 
         //Context
@@ -328,6 +355,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
         alarmVO = new AlarmVO(year , month , day,  hour , minute);
     }
 
+    // 클릭 이벤트.
     @Override
     public void onClick(View view) {
 

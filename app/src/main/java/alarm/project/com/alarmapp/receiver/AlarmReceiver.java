@@ -19,11 +19,10 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        // 화면 깨운후 알람 Activity로 이동.
         Toast.makeText(context, "Alarm Received!", Toast.LENGTH_LONG).show();
         Log.i("TAGG RECEIVER" , "HELLO RECEIVER");
         Log.i("TAGG RECEIVER" , intent.getIntExtra("requestCode" , -1) + "");
-
-
 
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(

@@ -36,10 +36,9 @@ import static com.kakao.util.helper.Utility.getPackageInfo;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQUEST_CODE_AUDIO_AND_WRITE_EXTERNAL_STORAGE = 101;
     private final String TAG = "MainActivity";
 
-    // DB Utils
+    // DB Helper
     private DatabaseHelper db = null;
 
     // Context
@@ -57,12 +56,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
         RefreshView.recyclerViewRefresh(db.selectAll());
     }
 
-    public static class RefreshView{
 
+    /*
+     * 삭제가 단일 Activity에서 이루어 지기때문에 static로 설정후
+     * RecyclerView 다시 그리기.
+    */
+    public static class RefreshView{
          public static void recyclerViewRefresh(List<AlarmRecordDTO> list){
              List<AlarmRecordDTO> recycle_list = list;
 
@@ -84,21 +86,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setTitle("알람 앱");
         setSupportActionBar(toolbar);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO) && ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_AUDIO_AND_WRITE_EXTERNAL_STORAGE);
-            } else {
-                // 유저가 거부하면서 다시 묻지 않기를 클릭5.. 권한이 없다고 유저에게 직접 알림.
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO , Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        REQUEST_CODE_AUDIO_AND_WRITE_EXTERNAL_STORAGE);
-
-
-            }
-        } else {
-        }
-
-
+        // 알람 등록 버튼
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -110,14 +98,17 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Component 초기화.
     public void initComponents(){
 
         // Context
         mCtx = this;
 
+        // Recycler설정 초기화 .
         mAlarmRecyclerView = (RecyclerView)findViewById(R.id.recycler_view);
         mAlarmRecyclerView.setHasFixedSize(true);
 
+        // Layout 설정 초기화.
         mLayoutManager = new LinearLayoutManager(this);
         mAlarmRecyclerView.setLayoutManager(mLayoutManager);
 
@@ -131,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     *  Kakao 개발자 센터 앱에 등록할 Hash Key를 얻는 부분
+     *  각각 다른 PC에서 실행할때마다 바뀌기 때문에
+     *  Hash키를 다시 등록해줘야 한다.
+     * */
     public static String getKeyHash(final Context context) {
         PackageInfo packageInfo = getPackageInfo(context, PackageManager.GET_SIGNATURES);
         if (packageInfo == null)
