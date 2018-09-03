@@ -325,6 +325,8 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         alarmRequestCode = getIntent().getIntExtra("requestCode", -1);
 
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
         API_KEY = getString(R.string.weather_key);
 
         TextToSpeechManager.getInstance().initializeLibrary(getApplicationContext());
@@ -359,13 +361,12 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             e.printStackTrace();
         }
 
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC , record.getAlarmSound() , AudioManager.FLAG_PLAY_SOUND);
 
-            audioManager.setStreamVolume(AudioManager.STREAM_ALARM , record.getAlarmSound() , 0);
+        if (audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) != 0) {
 
-            player.setAudioStreamType(AudioManager.STREAM_ALARM);
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
             player.setLooping(true);
             try {
