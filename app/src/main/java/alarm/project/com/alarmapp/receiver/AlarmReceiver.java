@@ -17,6 +17,7 @@ import alarm.project.com.alarmapp.R;
 public class AlarmReceiver extends BroadcastReceiver {
 
     private PowerManager.WakeLock wakeLock;
+
     @Override
     public void onReceive(Context context, Intent intent) {
 
