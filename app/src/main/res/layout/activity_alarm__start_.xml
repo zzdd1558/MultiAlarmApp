@@ -40,22 +40,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:gravity="center"
         android:layout_weight="0.1"
         android:weightSum="1">
 
-        <Button
+        <ImageButton
             android:id="@+id/newtone"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            android:text="음성 인식" />
-
-        <Button
-            android:id="@+id/weather"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            android:text="날씨" />
+            android:layout_weight="0.3"
+            android:scaleType="fitXY"
+            android:background="@android:color/transparent"
+            android:src="@drawable/alarm_btn"/>
 
     </LinearLayout>
 

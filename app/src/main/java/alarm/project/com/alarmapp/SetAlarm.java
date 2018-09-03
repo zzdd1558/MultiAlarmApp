@@ -141,6 +141,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
         int nCurrentVolumn = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         soundController.setMax(nMax);
         soundController.setProgress(nCurrentVolumn);
+        record.setAlarmSound(nCurrentVolumn);
         soundController.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {

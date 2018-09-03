@@ -26,6 +26,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -77,8 +78,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
     // TextView,  Button Component
     private TextView mYearMonthDay = null;
     private TextView mHourMinute = null;
-    private Button mNewton = null;
-    private Button mWeather = null;
+    private ImageButton mNewton = null;
 
 
     // 위도 경도 값
@@ -102,7 +102,6 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             mNewton.setEnabled(false);
-            mWeather.setEnabled(false);
         }
     };
 
@@ -113,7 +112,6 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             mNewton.setEnabled(true);
-            mWeather.setEnabled(true);
         }
     };
 
@@ -156,24 +154,19 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         // 알람 bell play
         startRington();
 
-        // 카카오 음성 인식 API 호출.
-        // 알람 시작과 동시에 명령 가능.
-        startUsingSpeechSDK();
-
         // 진동 시작.
-        //startVibrator();
+        startVibrator();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newtone:
-                client.startRecording(true);
+                // 카카오 음성 인식 API 호출.
+                // 알람 시작과 동시에 명령 가능.
+                startUsingSpeechSDK();
+                //client.startRecording(false);
                 break;
-            case R.id.weather:
-                startWeather();
-                break;
-
         }
     }
 
@@ -227,9 +220,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         Handler(falseUIHandler);
 
-        if(player.isPlaying()){
+        /*if(player.isPlaying()){
             player.stop();
-        }
+        }*/
 
         ttsClient.setSpeechText(weatherMent);
         ttsClient.play();
@@ -316,10 +309,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         mHourMinute = (TextView) findViewById(R.id.show_time);
 
         // 음성 및 날씨 정보 얻는 버튼
-        mNewton = (Button) findViewById(R.id.newtone);
-        mWeather = (Button) findViewById(R.id.weather);
+        mNewton = (ImageButton) findViewById(R.id.newtone);
         mNewton.setOnClickListener(this);
-        mWeather.setOnClickListener(this);
+
 
         // Weather사용 관련 GPS정보 얻기 위한 Manager
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -448,6 +440,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 if(errorCode == 4){
                     Handler(trueUIHandler);
                 }
+                client.cancelRecording();
                 Log.i(TAG + " onError", errorCode + "");
                 Log.i(TAG + " onError", errorMsg);
             }
@@ -474,9 +467,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                             client.stopRecording();
                         }
 
-                        finish();
-
-
+                        startWeather();
                     }
                 }
 
@@ -498,8 +489,6 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 }
 
                 mNewton.setEnabled(true);
-                mWeather.setEnabled(true);
-
             }
 
             @Override
@@ -515,7 +504,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             }
         });
 
-        client.startRecording(true);
+        client.startRecording(false);
     }
 
     @Override
@@ -557,5 +546,10 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             player.release();
             player = null;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
     }
 }

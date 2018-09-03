@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import alarm.project.com.alarmapp.Alarm_Start_Activity;
 import alarm.project.com.alarmapp.MainActivity;
+import alarm.project.com.alarmapp.R;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
@@ -46,8 +47,5 @@ public class AlarmReceiver extends BroadcastReceiver {
         }catch (PendingIntent.CanceledException e ) {
             e.printStackTrace();
         }
-
-
-
     }
 }
