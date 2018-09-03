@@ -2,6 +2,9 @@ package alarm.project.com.alarmapp;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,6 +23,7 @@ import android.os.Message;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -94,6 +98,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
     // 음성 합성
     private TextToSpeechClient ttsClient;
 
+    private NotificationManager mNotificationManager = null;
+
+
     // Kakao 음성 API가 onResult를 빼곤 비동기로 움직이기때문에
     // UIHandler를 사용 하여 UI 변경.
     private Handler falseUIHandler = new Handler()
@@ -132,6 +139,31 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         // Components 초기화.
         initComponents();
+
+        Intent resultIntent = new Intent(this , Alarm_Start_Activity.class);
+        PendingIntent alarm_close = PendingIntent.getActivity(this , 0 , resultIntent , PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("알람")
+                .setContentText("hello")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setOngoing(true);
+
+    NotificationCompat.Action action = new NotificationCompat.Action.Builder(android.R.drawable.sym_action_chat , "알람 해제" , alarm_close).build();
+
+    mBuilder.addAction(action);
+
+
+
+
+
+        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        mNotificationManager.notify(-1 , mBuilder.build());
+
 
         //requestCode를 통해 해당 되는 record값 얻기.
         record = db.onSelectOne(alarmRequestCode);
@@ -474,6 +506,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                             client.stopRecording();
                         }
 
+                        mNotificationManager.cancel(-1);
                         finish();
 
 
