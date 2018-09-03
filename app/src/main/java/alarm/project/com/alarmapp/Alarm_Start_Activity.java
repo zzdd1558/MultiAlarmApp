@@ -151,6 +151,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         mYearMonthDay.setText(mYear + "년 " + mMonth + "월 " + mDayOfMonth + "일 ");
         mHourMinute.setText(mHour + "시 " + mMinute + "분 ");
 
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC , record.getAlarmSound() , 0);
 
         // 알람 bell play
         startRington();
@@ -160,7 +161,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         startUsingSpeechSDK();
 
         // 진동 시작.
-        startVibrator();
+        //startVibrator();
     }
 
     @Override
@@ -353,6 +354,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
     public void startRington() {
         alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+
         player = new MediaPlayer();
 
         try {
@@ -361,12 +363,12 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             e.printStackTrace();
         }
 
+        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC , record.getAlarmSound() , AudioManager.FLAG_PLAY_SOUND);
 
         if (audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) != 0) {
 
-            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
 
             player.setLooping(true);
             try {
