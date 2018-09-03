@@ -13,7 +13,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.9">
+        android:layout_weight="0.8">
 
         <TextView
             android:id="@+id/show_day"
@@ -40,22 +40,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.1"
+        android:gravity="center"
+        android:layout_weight="0.2"
+        android:padding="5dp"
         android:weightSum="1">
 
-        <Button
+        <ImageButton
             android:id="@+id/newtone"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            android:text="음성 인식" />
-
-        <Button
-            android:id="@+id/weather"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5"
-            android:text="날씨" />
+            android:layout_weight="0.3"
+            android:scaleType="fitXY"
+            android:background="@drawable/alarm_btn"/>
 
     </LinearLayout>
 

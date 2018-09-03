@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -30,6 +31,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -81,8 +83,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
     // TextView,  Button Component
     private TextView mYearMonthDay = null;
     private TextView mHourMinute = null;
-    private Button mNewton = null;
-    private Button mWeather = null;
+    private ImageButton mNewton = null;
 
 
     // 위도 경도 값
@@ -109,7 +110,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             mNewton.setEnabled(false);
-            mWeather.setEnabled(false);
+            mNewton.setBackgroundResource(R.drawable.alarm_btn_n);
         }
     };
 
@@ -120,7 +121,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             mNewton.setEnabled(true);
-            mWeather.setEnabled(true);
+            mNewton.setBackgroundResource(R.drawable.alarm_btn);
         }
     };
 
@@ -140,30 +141,12 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         // Components 초기화.
         initComponents();
 
-        Intent resultIntent = new Intent(this , Alarm_Start_Activity.class);
-        PendingIntent alarm_close = PendingIntent.getActivity(this , 0 , resultIntent , PendingIntent.FLAG_UPDATE_CURRENT);
-
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("알람")
-                .setContentText("hello")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .setOngoing(true);
-
-    NotificationCompat.Action action = new NotificationCompat.Action.Builder(android.R.drawable.sym_action_chat , "알람 해제" , alarm_close).build();
-
-    mBuilder.addAction(action);
-
-
-
-
 
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        mNotificationManager.notify(-1 , mBuilder.build());
-
+        Intent resultIntent = new Intent(this , Alarm_Start_Activity.class);
+        resultIntent.putExtra("requestCode", getIntent().getIntExtra("requestCode", -1));
+        PendingIntent alarm_close = PendingIntent.getActivity(this , 0 , resultIntent , PendingIntent.FLAG_UPDATE_CURRENT);
 
         //requestCode를 통해 해당 되는 record값 얻기.
         record = db.onSelectOne(alarmRequestCode);
@@ -185,27 +168,38 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC , record.getAlarmSound() , 0);
 
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("알람")
+                .setContentText(mHour + "시 " + mMinute + "분 ")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setOngoing(true);
+
+        NotificationCompat.Action action = new NotificationCompat.Action.Builder(android.R.drawable.sym_action_chat , "알람 해제" , alarm_close).build();
+
+        mBuilder.addAction(action);
+
+
+        mNotificationManager.notify(alarmRequestCode , mBuilder.build());
+
+
         // 알람 bell play
         startRington();
 
-        // 카카오 음성 인식 API 호출.
-        // 알람 시작과 동시에 명령 가능.
-        startUsingSpeechSDK();
-
         // 진동 시작.
-        //startVibrator();
+        startVibrator();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.newtone:
-                client.startRecording(true);
+                // 카카오 음성 인식 API 호출.
+                // 알람 시작과 동시에 명령 가능.
+                startUsingSpeechSDK();
+                //client.startRecording(false);
                 break;
-            case R.id.weather:
-                startWeather();
-                break;
-
         }
     }
 
@@ -259,9 +253,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         Handler(falseUIHandler);
 
-        if(player.isPlaying()){
+        /*if(player.isPlaying()){
             player.stop();
-        }
+        }*/
 
         ttsClient.setSpeechText(weatherMent);
         ttsClient.play();
@@ -348,10 +342,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         mHourMinute = (TextView) findViewById(R.id.show_time);
 
         // 음성 및 날씨 정보 얻는 버튼
-        mNewton = (Button) findViewById(R.id.newtone);
-        mWeather = (Button) findViewById(R.id.weather);
+        mNewton = (ImageButton) findViewById(R.id.newtone);
         mNewton.setOnClickListener(this);
-        mWeather.setOnClickListener(this);
+
 
         // Weather사용 관련 GPS정보 얻기 위한 Manager
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -480,6 +473,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 if(errorCode == 4){
                     Handler(trueUIHandler);
                 }
+                client.cancelRecording();
                 Log.i(TAG + " onError", errorCode + "");
                 Log.i(TAG + " onError", errorMsg);
             }
@@ -506,10 +500,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                             client.stopRecording();
                         }
 
-                        mNotificationManager.cancel(-1);
-                        finish();
-
-
+                        Handler(falseUIHandler);
+                        mNotificationManager.cancel(alarmRequestCode);
+                        startWeather();
                     }
                 }
 
@@ -531,8 +524,6 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 }
 
                 mNewton.setEnabled(true);
-                mWeather.setEnabled(true);
-
             }
 
             @Override
@@ -548,7 +539,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             }
         });
 
-        client.startRecording(true);
+        client.startRecording(false);
     }
 
     @Override
@@ -590,5 +581,10 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
             player.release();
             player = null;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }
