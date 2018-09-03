@@ -186,6 +186,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
                 minute.setValue(mMinute);
 
                 //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC , data.getAlarmSound() , 0);
+                record.setAlarmSound(data.getAlarmSound());
                 soundController.setProgress(data.getAlarmSound());
 
                 ((TextView) findViewById(R.id.today)).setText(mYear + "년 " + timeSplit[2]);
