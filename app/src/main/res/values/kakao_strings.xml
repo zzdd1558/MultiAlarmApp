@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Kakao API Android Key -->
     <string name="kakao_app_key">5152ae5b57213b14dd31e479579dbc9b</string>
 </resources>

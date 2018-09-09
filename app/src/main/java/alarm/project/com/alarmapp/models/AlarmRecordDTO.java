@@ -7,10 +7,18 @@ public class AlarmRecordDTO {
     private int alarmSound;             // alarm_sound
     private String alarmFlag = null;    // alarm_flag
 
-
+    /* 기본 생성자 */
     public AlarmRecordDTO() {
     }
 
+    /*
+    *
+    * requestCode : PendingIntent에 등록될 Request Code
+    * registTime : 알람울릴 시간
+    * alarmSound : 알람의 사운드 크기
+    * alarmFlag : 알람을 울릴것인지 여부 Y / N
+    *
+    * */
     public AlarmRecordDTO(int requestCode, String registTime, int alarmSound, String alarmFlag) {
         this.requestCode = requestCode;
         this.registTime = registTime;
@@ -18,6 +26,7 @@ public class AlarmRecordDTO {
         this.alarmFlag = alarmFlag;
     }
 
+    //setter , getter
     public int getRequestCode() {
         return requestCode;
     }

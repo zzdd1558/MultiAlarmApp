@@ -10,15 +10,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetroClient {
 
-    /**
-     * Upload URL of your folder with php file name...
-     * You will find this file in php_upload folder in this project
-     * You can copy that folder and paste in your htdocs folder...
-     */
+    /* SK Weather API REST 경로 */
     private static final String ROOT_URL = "https://api2.sktelecom.com/weather/";
 
+    /* 기본 생성자 */
     public RetroClient() {
-
     }
 
     /**

@@ -29,7 +29,7 @@ public class LoadingSplash extends Activity {
 
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
-
+        /* 마시멜로우 이상의 버전에서는 앱권한 체크 필요  */
         if ( Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
                     || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
@@ -57,6 +57,8 @@ public class LoadingSplash extends Activity {
 
                 }
             } else {
+
+                /* Splash화면 구성후 2초뒤에 MainActivity.class로 이동. */
                 Handler hd = new Handler();
                 hd.postDelayed(new splashhandler(), 2000); // 1초 후에 hd handler 실행  2000ms = 3초
             }

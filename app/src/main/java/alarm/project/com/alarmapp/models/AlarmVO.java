@@ -1,24 +1,36 @@
 package alarm.project.com.alarmapp.models;
 
 public class AlarmVO {
+
+    /* 년 월 일 */
     int year;
     int month;
     int dayOfMonth;
 
+    /* 시간 분 */
     int hour;
     int minute;
 
-    public AlarmVO() {
-    }
+    /* 기본 생성자*/
+    public AlarmVO() {    }
 
+    /*
+    * year              년
+    * month             월
+    * dayOfMonth        일
+    * hour              시간
+    * minute            분
+    * */
     public AlarmVO(int year, int month, int dayOfMonth, int hour, int minute) {
-        this.year = year;
-        this.month = month;
-        this.dayOfMonth = dayOfMonth;
-        this.hour = hour;
-        this.minute = minute;
+        this.year =         year;
+        this.month =        month;
+        this.dayOfMonth =   dayOfMonth;
+        this.hour =         hour;
+        this.minute =       minute;
     }
 
+
+    /* Setter / Getter */
     public int getYear() {
         return year;
     }

@@ -23,9 +23,8 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         // 화면 깨운후 알람 Activity로 이동.
         Toast.makeText(context, "Alarm Received!", Toast.LENGTH_LONG).show();
-        Log.i("TAGG RECEIVER" , "HELLO RECEIVER");
-        Log.i("TAGG RECEIVER" , intent.getIntExtra("requestCode" , -1) + "");
 
+        /* 꺼져 있는 화면을 깨우기 위한 PowerManager 사용 */
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(
                 PowerManager.SCREEN_BRIGHT_WAKE_LOCK |
@@ -35,11 +34,13 @@ public class AlarmReceiver extends BroadcastReceiver {
         wakeLock.acquire();
 
 
+        /* 꺠우고 나서 wakeLock 변수를 메모리에서 삭제하도록 null 처리 */
         if (wakeLock != null) {
             wakeLock.release();
             wakeLock = null;
         }
 
+        /* Receiver에서 처리할 Event 등록. */
         Intent it = new Intent(context , Alarm_Start_Activity.class);
         it.putExtra("requestCode" , intent.getIntExtra("requestCode" , -1));
         PendingIntent pi = PendingIntent.getActivity(context , -1 , it , PendingIntent.FLAG_ONE_SHOT);

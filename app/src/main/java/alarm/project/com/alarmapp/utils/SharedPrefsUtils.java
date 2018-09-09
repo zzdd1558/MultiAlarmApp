@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
+/* SharedPrefsUtils Utils */
 final public class SharedPrefsUtils {
     public SharedPrefsUtils() {
     }

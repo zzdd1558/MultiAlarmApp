@@ -10,10 +10,9 @@ import retrofit2.http.Query;
  */
 
 public interface ApiService {
-    /*
-   Retrofit get annotation with our URL
-   And our method that will return us the List of Contacts
-   */
+
+    /* SK Weather API에서 불러올 경로 */
+    // appKey와 version , lat , lon  앱키 , 버전 , 위*경도를 같이 매개변수에 태워서 보낸다.
     @GET("current/hourly")
     Call<WeatherInfo> getCurrentWeather(@Header("appKey") String appKey, @Query("version") int version,
                                         @Query("lat") double lat, @Query("lon") double lon);

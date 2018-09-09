@@ -37,33 +37,50 @@ import alarm.project.com.alarmapp.models.AlarmRecordDTO;
 import alarm.project.com.alarmapp.receiver.AlarmReceiver;
 import alarm.project.com.alarmapp.utils.TimeSplitUtils;
 
+/* RecyclerView 연결을 위한 Adapter */
 public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    /* Log Name */
     private final String TAG = "AlarmAdapter";
 
+    /* AlarmList를 담을 변수 */
     List<AlarmRecordDTO> recordList = null;
 
+    /* 기본 생성자 */
     public void AlarmAdapter() {
-
     }
 
+    /* 오버로딩 생성자 AlarmList를 매개변수로 전달 받음. */
     public AlarmAdapter(List<AlarmRecordDTO> list) {
         this.recordList = list;
     }
 
-    public static class AlarmViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener , View.OnLongClickListener{
 
+    /*
+     * ViewHolder Inner static Class
+     *
+     * 일반 Click과 LongClick클래스 implements
+     *
+     * */
+    public static class AlarmViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+
+        /* Log Name */
         private final String TAG = "AlarmViewHolder";
+
+        /* Alarm을 구분하기 위한 고유 값 변수 */
         private int alarmRequestCode;
 
+        /* List에 보여질 변수들 초기화. */
         private LinearLayout alarmLayout = null;
         private TextView alarmAmPm = null;
         private TextView alarmTime = null;
         private TextView alarmDay = null;
         private Switch alarmYN = null;
 
+        /* context */
         private final Context context;
 
+        /* db 변수 */
         private DatabaseHelper db = null;
 
 
@@ -95,52 +112,62 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             switch (v.getId()) {
 
                 /* 알람 Layout을 클릭하열을 경우 . Animation을 활용하면서 수정 하는 Activity로 이동.*/
-                case R.id.alarm_layout :
-                    Log.i(TAG, "Hello :: " + alarmRequestCode);
-                    Intent it = new Intent( context, SetAlarm.class);
-                    it.putExtra("method" , "update");
-                    it.putExtra("requestCode" , alarmRequestCode);
+                case R.id.alarm_layout:
+                    //Log.i(TAG, "Hello :: " + alarmRequestCode);
+
+                    // 알람 수정을 위한 Event
+                    Intent it = new Intent(context, SetAlarm.class);
+                    it.putExtra("method", "update");
+                    it.putExtra("requestCode", alarmRequestCode);
                     context.startActivity(it);
-                    ((AppCompatActivity)context).overridePendingTransition(R.anim.slide_up, R.anim.stay);
+
+                    // Animation 처리 .
+                    ((AppCompatActivity) context).overridePendingTransition(R.anim.slide_up, R.anim.stay);
 
                     break;
 
                 /*  알람을 울릴지 말지 에 대한 Y/N 체크 버튼  */
-                case R.id.alarm_yn :
-                    Log.i(TAG , alarmYN.isChecked() + "" + alarmRequestCode);
+                case R.id.alarm_yn:
 
+                    // DB에 저장되어 있는 Flag 수정을 위한 삼항 연산자 조건.
                     String flag = alarmYN.isChecked() == true ? "Y" : "N";
-                    db.soundCheck( flag, alarmRequestCode);
+
+                    /* alarmRequestCode를 조건문으로 사용하기 위해 Flag와 함께 전달., */
+                    db.soundCheck(flag, alarmRequestCode);
+
+                    /* alarmRequestCode로 해당되는 Alarm에 대한 값들을 가져옴. */
                     AlarmRecordDTO record = db.onSelectOne(alarmRequestCode);
 
-                    Log.i(TAG , record.getRegistTime());
-
+                    /* 알람 재설정을 위한 시간 재설정. */
                     int[] setCalTime = TimeSplitUtils.calTimeSplit(record.getRegistTime());
 
-                    AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+                    /* 알람 서비스를 위한 Manager 등록. */
+                    AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                     Calendar calendar = Calendar.getInstance();
 
-                    calendar.set(setCalTime[0] , setCalTime[1] - 1 , setCalTime[2] , setCalTime[3] , setCalTime[4]);
-                    calendar.set(Calendar.SECOND , 0);
+                    /* N에서 Y로  바뀌었을시 알람등록을 위한 시간 settings */
+                    calendar.set(setCalTime[0], setCalTime[1] - 1, setCalTime[2], setCalTime[3], setCalTime[4]);
+                    calendar.set(Calendar.SECOND, 0);
 
-                    Intent intent = new Intent(context , AlarmReceiver.class);
-                    PendingIntent operation = PendingIntent.getBroadcast(context , alarmRequestCode , intent , PendingIntent.FLAG_UPDATE_CURRENT);
+                    /* 추후에 발생될 이벤트를 담을 Intent와 PendingIntent 등록. */
+                    Intent intent = new Intent(context, AlarmReceiver.class);
+                    PendingIntent operation = PendingIntent.getBroadcast(context, alarmRequestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                     // flag 가 Y일 경우 알람을 울린다. N 일경우는 알람등록을 하지 않고 해당 알람을 취소한다.
-                    if ("Y".equals(flag)){
-                        if (calendar.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()){
-                            if (Build.VERSION.SDK_INT >= 23){
-                                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP , calendar.getTimeInMillis() , operation);
-                            }else{
-                                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                                    alarmManager.set(AlarmManager.RTC_WAKEUP , calendar.getTimeInMillis() , operation );
+                    if ("Y".equals(flag)) {
+                        if (calendar.getTimeInMillis() > Calendar.getInstance().getTimeInMillis()) {
+                            if (Build.VERSION.SDK_INT >= 23) {
+                                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), operation);
+                            } else {
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), operation);
                                 } else {
-                                    alarmManager.setExact(AlarmManager.RTC_WAKEUP , calendar.getTimeInMillis() , operation );
+                                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), operation);
                                 }
                             }
                         }
-                    }else{
-                        if ( operation != null ){
+                    } else {
+                        if (operation != null) {
                             alarmManager.cancel(operation);
                             operation.cancel();
                         }
@@ -153,8 +180,8 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         // Long클릭할 경우 알람 삭제.
         @Override
         public boolean onLongClick(View v) {
-            switch (v.getId()){
-                case R.id.alarm_layout :
+            switch (v.getId()) {
+                case R.id.alarm_layout:
 
                     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 
@@ -179,17 +206,17 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                         public void onClick(
                                                 DialogInterface dialog, int id) {
                                             // 프로그램을 종료한다
-                                            Log.i(TAG , "Long Click ::" + alarmRequestCode);
+                                            Log.i(TAG, "Long Click ::" + alarmRequestCode);
                                             db.onDeleteOne(alarmRequestCode);
 
+                                            /* 삭제한후 그 액티비티에 있는 RecyclerView Refresh */
                                             MainActivity.RefreshView.recyclerViewRefresh(db.selectAll());
 
-                                            Snackbar.make(itemView , "알람이 삭제 되었습니다." , Snackbar.LENGTH_SHORT).show();
-
-                                            AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-                                            Intent intent = new Intent(context , AlarmReceiver.class);
-                                            PendingIntent operation = PendingIntent.getBroadcast(context, alarmRequestCode , intent , PendingIntent.FLAG_UPDATE_CURRENT);
-                                            if ( operation != null ){
+                                            /* 해당 requestCode로 등ㅇ록되있는 알람 삭제. */
+                                            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                                            Intent intent = new Intent(context, AlarmReceiver.class);
+                                            PendingIntent operation = PendingIntent.getBroadcast(context, alarmRequestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                            if (operation != null) {
                                                 alarmManager.cancel(operation);
                                                 operation.cancel();
                                             }
@@ -216,7 +243,6 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
 
-
     // Recycler ViewHolder 생성 부분.
 
     @Override
@@ -227,8 +253,9 @@ public class AlarmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
 
     /**
-     *  처음 RecyclerView에 그려질때 설정되는 텍스트 및 체크
-     * */
+     * 처음 RecyclerView에 그려질때 설정되는 텍스트 및 체크
+     *  직접적으로 리스트에 값을 settings 해주는 부분.
+     */
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         AlarmViewHolder alarmViewHolder = (AlarmViewHolder) holder;

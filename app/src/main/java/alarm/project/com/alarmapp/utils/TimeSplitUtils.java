@@ -1,5 +1,6 @@
 package alarm.project.com.alarmapp.utils;
 
+/* DB에 저장되있는 registTime을 분해하기 위한 Utils */
 public class TimeSplitUtils {
     public TimeSplitUtils() {}
 
