@@ -105,8 +105,21 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:weightSum="1"
+        android:orientation="vertical"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:layout_weight="0.56">
 
+        <EditText
+            android:id="@+id/edit_memo"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:inputType="text"
+            android:background="@null"
+            android:hint="메모 입력"
+             />
     </LinearLayout>
 
     <LinearLayout

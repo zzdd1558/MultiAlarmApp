@@ -234,6 +234,18 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         }
     }
 
+    private void readMemo(){
+
+
+
+        Handler(falseUIHandler);
+
+        ttsClient.setSpeechText(record.getMemo());
+        ttsClient.play();
+
+    }
+
+
 
     private void makeWeatherMent(WeatherInfo weatherInfo)
     {
@@ -353,19 +365,12 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
+        /* SK Weather API Key 변수 저장. */
         API_KEY = getString(R.string.weather_key);
 
+
+        /* 음성 합성 설정 */
         TextToSpeechManager.getInstance().initializeLibrary(getApplicationContext());
-
-
-    }
-
-    public void startWeather () {
-
-
-        Log.i(TAG , "startWeather");
-
-
 
         ttsClient = new TextToSpeechClient.Builder()
                 .setSpeechMode(TextToSpeechClient.NEWTONE_TALK_1)     // 음성합성방식
@@ -374,9 +379,19 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 .setListener(this)
                 .build();
 
+
+    }
+
+    /* 날씨 읽어주기 시작 */
+    public void startWeather () {
+
+
+        Log.i(TAG , "startWeather");
+
         requestLocation();
     }
 
+    /* 알람 소리 울리기 */
     public void startRington() {
         alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
 
@@ -480,7 +495,34 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
             @Override
             public void onPartialResult(String partialResult) {
+                String [] alarmMemo = new String[]{"메모" , "메모 읽어줘" , "메모 알려줘"};
                 String[] alarmValue = new String[]{"꺼", "꺼줘", "알람 꺼", "알람 꺼줘"};
+
+
+                for (int i = 0; i < alarmMemo.length; i++) {
+                    if (partialResult.contains(alarmMemo[i])) {
+
+                        if (vibe != null) {
+                            vibe.cancel();
+                            vibe = null;
+                        }
+
+                        if (player != null) {
+                            player.stop();
+                            player.release();
+                            player = null;
+                        }
+
+                        if (client != null) {
+                            client.stopRecording();
+                        }
+
+                        Handler(falseUIHandler);
+                        mNotificationManager.cancel(alarmRequestCode);
+                        readMemo();
+                    }
+                }
+
 
                 for (int i = 0; i < alarmValue.length; i++) {
                     if (partialResult.contains(alarmValue[i])) {
@@ -510,6 +552,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 Log.i(TAG + "Partial", partialResult);
             }
 
+            /* 카카오 API 음성 합성이 모두 끝났을 경우 . 동기로 돌아감. */
             @Override
             public void onResults(Bundle results) {
                 Log.i(TAG + " onResults", "onResults");

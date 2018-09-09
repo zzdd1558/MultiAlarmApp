@@ -26,7 +26,9 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     private static final String columnCode = "request_code";
     private static final String columnTime = "regist_time";
     private static final String columnSound = "alarm_sound";
+    private static final String columnMemo = "alarm_memo";
     private static final String columnYN = "alarm_flag";
+
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -43,6 +45,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         create_query.append(columnCode + " INTEGER PRIMARY KEY ," );
         create_query.append(columnTime + " TEXT NOT NULL , ");
         create_query.append(columnSound + " INTEGER NOT NULL , ");
+        create_query.append(columnMemo + " TEXT NOT NULL , ");
         create_query.append(columnYN + " TEXT NOT NULL );");
 
         db.execSQL(create_query.toString());
@@ -70,6 +73,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         inputValues.put(columnCode , data.getRequestCode());
         inputValues.put(columnTime , data.getRegistTime());
         inputValues.put(columnSound , data.getAlarmSound());
+        inputValues.put(columnMemo , data.getMemo());
         inputValues.put(columnYN , data.getAlarmFlag());
 
         db.insert(TABLE_NAME , null , inputValues);
@@ -95,7 +99,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                 record.setRequestCode(Integer.parseInt(cursor.getString(0)));
                 record.setRegistTime(cursor.getString(1));
                 record.setAlarmSound(Integer.parseInt(cursor.getString(2)));
-                record.setAlarmFlag(cursor.getString(3));
+                record.setMemo(cursor.getString(3));
+                record.setAlarmFlag(cursor.getString(4));
 
                 alarmList.add(record);
             }while (cursor.moveToNext());
@@ -135,6 +140,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         ContentValues values = new ContentValues();
         values.put(columnTime , data.getRegistTime());
         values.put(columnSound , data.getAlarmSound());
+        values.put(columnMemo , data.getMemo());
         values.put(columnYN , data.getAlarmFlag());
 
         db.update(TABLE_NAME , values , columnCode + " = ?" , new String[]{String.valueOf(data.getRequestCode())});
@@ -172,7 +178,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                 record.setRequestCode(Integer.parseInt(cursor.getString(0)));
                 record.setRegistTime(cursor.getString(1));
                 record.setAlarmSound(Integer.parseInt(cursor.getString(2)));
-                record.setAlarmFlag(cursor.getString(3));
+                record.setMemo(cursor.getString(3));
+                record.setAlarmFlag(cursor.getString(4));
             }while (cursor.moveToNext());
         }
         Log.i(TAG , record.toString());

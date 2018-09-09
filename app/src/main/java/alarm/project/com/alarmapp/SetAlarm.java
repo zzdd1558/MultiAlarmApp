@@ -15,8 +15,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.SeekBar;
 import android.widget.SeekBar;
@@ -50,6 +52,9 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
 
     // Sound 설정 관련 SeekBar 변수.
     private SeekBar                 soundController = null;
+
+    // 메모 입력 EditText
+    private EditText                memoBox = null;
 
     // 날짜 선택 관련 버튼
     private Button                  selectDate = null;
@@ -190,9 +195,17 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
                 record.setAlarmSound(data.getAlarmSound());
                 soundController.setProgress(data.getAlarmSound());
 
+                memoBox.setText(data.getMemo().toString());
+
                 ((TextView) findViewById(R.id.today)).setText(mYear + "년 " + timeSplit[2]);
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
     // 알람 등록부분.
@@ -240,6 +253,8 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
         record.setRequestCode(requestCode);
         record.setRegistTime(builder.toString());
         record.setAlarmFlag("Y");
+        record.setMemo(memoBox.getText().toString());
+
 
         // update or insert
         if("update".equals(method)){
@@ -335,6 +350,9 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
 
         // 날짜 선택
         selectDate = (Button) findViewById(R.id.select_date);
+
+        // 메모 입력
+        memoBox = (EditText) findViewById(R.id.edit_memo);
 
         //취소 , 설정
         cancelBtn = (Button) findViewById(R.id.cancel_btn);
@@ -444,6 +462,7 @@ public class SetAlarm extends AppCompatActivity implements View.OnClickListener 
 
         // 다이얼로그 보여주기
         alertDialog.show();
-
     }
+
+
 }
