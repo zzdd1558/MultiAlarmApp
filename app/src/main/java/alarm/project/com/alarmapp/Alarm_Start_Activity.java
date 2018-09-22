@@ -235,16 +235,11 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
     }
 
     private void readMemo(){
-
-
-
         Handler(falseUIHandler);
 
         ttsClient.setSpeechText(record.getMemo());
         ttsClient.play();
-
     }
-
 
 
     private void makeWeatherMent(WeatherInfo weatherInfo)
@@ -495,33 +490,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
             @Override
             public void onPartialResult(String partialResult) {
-                String [] alarmMemo = new String[]{"메모" , "메모 읽어줘" , "메모 알려줘"};
                 String[] alarmValue = new String[]{"꺼", "꺼줘", "알람 꺼", "알람 꺼줘"};
-
-
-                for (int i = 0; i < alarmMemo.length; i++) {
-                    if (partialResult.contains(alarmMemo[i])) {
-
-                        if (vibe != null) {
-                            vibe.cancel();
-                            vibe = null;
-                        }
-
-                        if (player != null) {
-                            player.stop();
-                            player.release();
-                            player = null;
-                        }
-
-                        if (client != null) {
-                            client.stopRecording();
-                        }
-
-                        Handler(falseUIHandler);
-                        mNotificationManager.cancel(alarmRequestCode);
-                        readMemo();
-                    }
-                }
 
 
                 for (int i = 0; i < alarmValue.length; i++) {
@@ -544,6 +513,13 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
                         Handler(falseUIHandler);
                         mNotificationManager.cancel(alarmRequestCode);
+
+                        Log.i(TAG + " :: MEMO :: " , record.getMemo().toLowerCase());
+
+                        if (!("".equals(record.getMemo().toString()))) {
+                            readMemo();
+                        }
+
                         startWeather();
                     }
                 }
