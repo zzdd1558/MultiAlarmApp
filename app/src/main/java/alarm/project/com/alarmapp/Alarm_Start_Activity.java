@@ -101,6 +101,8 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
     private NotificationManager mNotificationManager = null;
 
+    private boolean TTSFlag = false;
+
 
     // Kakao 음성 API가 onResult를 빼곤 비동기로 움직이기때문에
     // UIHandler를 사용 하여 UI 변경.
@@ -189,6 +191,8 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
         // 진동 시작.
         startVibrator();
+
+        startUsingSpeechSDK();
     }
 
     @Override
@@ -263,9 +267,10 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         /*if(player.isPlaying()){
             player.stop();
         }*/
-
+        TTSFlag = true;
         ttsClient.setSpeechText(weatherMent);
         ttsClient.play();
+
 
         Log.d(TAG, "tv_weatherMent : " + weatherMent);
     }
@@ -456,7 +461,8 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         // 클라이언트 생성
         SpeechRecognizerClient.Builder builder = new SpeechRecognizerClient.Builder()
                 .setServiceType(SpeechRecognizerClient.SERVICE_TYPE_WORD)
-                .setUserDictionary("알람\n꺼줘\n꺼\n오프");
+                .setUserDictionary("알람\n꺼줘\n꺼\n오프")
+                .setGlobalTimeOut(30);
 
         client = builder.build();
 
@@ -482,8 +488,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
                 if(errorCode == 4){
                     Handler(trueUIHandler);
+                    client.cancelRecording();
                 }
-                client.cancelRecording();
+
                 Log.i(TAG + " onError", errorCode + "");
                 Log.i(TAG + " onError", errorMsg);
             }
@@ -571,7 +578,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
         Log.i(TAG, strInacctiveText);
 
 
-        finish();
+        if(TTSFlag) {
+            finish();
+        }
     }
 
     @Override
