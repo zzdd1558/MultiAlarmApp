@@ -48,6 +48,8 @@ import org.w3c.dom.Text;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import alarm.project.com.alarmapp.helper.DatabaseHelper;
 import alarm.project.com.alarmapp.models.AlarmRecordDTO;
@@ -455,6 +457,7 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
 
     //  Kakao 음성 인식 시장.
     public void startUsingSpeechSDK() {
+
         // SDK 초기화 부분.
         SpeechRecognizerManager.getInstance().initializeLibrary(mCtx);
 
@@ -489,6 +492,9 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
                 if(errorCode == 4){
                     Handler(trueUIHandler);
                     client.cancelRecording();
+
+                    Timer timer = new Timer();
+                    timer.schedule(new CustomTimer() , 1000);
                 }
 
                 Log.i(TAG + " onError", errorCode + "");
@@ -614,5 +620,12 @@ public class Alarm_Start_Activity extends Activity implements View.OnClickListen
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
+
+    class CustomTimer extends TimerTask{
+        @Override
+        public void run() {
+            startUsingSpeechSDK();
+        }
     }
 }
